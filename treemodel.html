@@ -1,0 +1,70 @@
+<html>
+	<head>
+		<title>jstree treemodel plugin demo</title>
+		<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+		<script type="text/javascript" src="jquery.jstree.js"></script>
+		<script type="text/javascript" src="jstreemodel.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				var node = function(name,attr,type) {
+					attr = attr || {};
+					var children = [];
+					return {
+						getChildren : function() {
+							return children;
+						},
+						getChildrenCount : function() {
+							return children.length;
+						},
+						addChild : function(child) {
+							children.push(child);
+							return(this);
+						},
+						removeChild : function(i) {
+							if (i>=children.length) {
+								children.pop();
+							} else {
+								delete children[i];
+							}
+							return(this);
+						},
+						getAttr : function() {
+							return(attr);
+						},
+						getName : function() {
+							return(name);
+						},
+						getProps : function() {
+							return(null);
+						},
+						getType : function() {
+							return(type);
+						}
+					}
+				};
+				var root = node("Root 1",{price: "$5.00", size: "4", id: 1},"rooter");
+				root.addChild(node("Child 1",{price: "$4.00", size: "3", id:2},"childer")).addChild(node("Child 2",{price: "$3.00", size: "2", id:3},"childish"));
+				$("div#jstree1").jstree({
+					plugins: ["themes","model_data"],
+					model_data: {
+						data: node().addChild(root), 
+						progressive_render: true, 
+						progressive_unload: true,
+						type_attr: "mytype",
+						id_prefix: "myid"
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<h2>Tree Model Demo</h2>
+		This page gives a demo for using the excellent <a href="http://www.jstree.com">jstree</a>, built on the
+		amazing <a href="http://jquery.com">jQuery</a> library, with a tree model. The treemodel is implemented
+		as a standard jstree plugin. Simply include jquery and jstree, and the plugin library jstreemodel.js,
+		and include it as a plugin. Look at the source to this page to see how it is done.
+		<div id="jstree1"></div>
+		<div id="jstree2"></div>
+		
+	</body>
+</html>
