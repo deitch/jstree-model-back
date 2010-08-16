@@ -41,12 +41,12 @@
 			// when a node is closed, if progressive_clean is in place, we clean up the node
 			// NOTE: THIS IS A BUG - close_node.jstree event is sent *before* the hide action is complete
 			//     jstree does not have a post-close event, but a request is in place
-			this.get_container().bind("close_node.jstree", $.proxy(function (e, data) {
-				// remove the children
-				if (s.progressive_unload) {
+			if (s.progressive_unload) {
+				this.get_container().bind("close_node.jstree", $.proxy(function (e, data) {
+					// remove the children
 					data.rslt.obj.children("ul").detach();
-				}
-			}, this));
+				}, this));
+			};
 		},
 		defaults : { 
 			data : false,
