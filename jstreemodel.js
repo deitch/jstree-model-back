@@ -2,11 +2,12 @@
  * jsTreeModel 0.5
  * http://jsorm.com/
  *
- * Copyright (c) 2010 Avi Deitcher (deitcher.net)
- *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
  *   http://www.opensource.org/licenses/mit-license.php
  *   http://www.gnu.org/licenses/gpl.html
+ * 
+ * Created for Tufin www.tufin.com
+ * Contributed to public source through the good offices of Tufin
  *
  * $Date: 2010-08-10 $
  * $Revision:  $
@@ -15,7 +16,7 @@
 /*global window, jQuery*/
 
 /* 
- * jsTree model plugin 1.0
+ * jsTree model plugin 0.5
  * This plugin gets jstree to use a class model to retrieve data, creating great dynamism
  */
 (function ($) {
