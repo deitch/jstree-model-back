@@ -1,0 +1,51 @@
+Plugin for the jstree www.jstree.com tree component that uses a model backing, rather than fixed data.
+
+Provides greater flexibility, in allowing all, none or some of the data to be loaded at once,
+and can even dynamically change the data as needed.
+
+Usage:
+1) Include jquery and jstree in your page, as usual
+2) Include jstreemodel.js
+<script src="/path/to/jstreemodel.js"></script>
+
+3) Include tree_model as a plugin
+$("div#id").jstree({
+..
+	plugins: ["core","ui",...,"tree_model"],
+..
+})
+
+4) Include relevant parameters. 
+$("div#id").jstree({
+..
+	plugins: ["core","ui",...,"tree_model"],
+	tree_model: {
+		data: rootObject,
+		progressive_render: true/false,
+		progressive_unload: true/false,
+		id_prefix: string,
+		type_attr: string
+	}
+..
+});
+
+The options are as follows:
+- progressive_render: true or false, default false. If true, will not load children of the current node until the parent node is opened in the tree.
+- progressive_unload: true or false, default false. If true, when a node is closed, will unload all of the children from DOM and data
+- data: the root object of the tree. Must match the required interface for a treeNode (see below). The root will never be rendered, only its children.
+- id_prefix: a prefix to prepend to the id parameter of the object, if relevant.
+- type_attr: the name to give to the type attribute, if getType() is available and returns non-null. Used primarily for the types plugin.
+
+
+Node Interface:
+Every node must have the following functions available on it:
+- getName(): returns either a string to use as the name for the node, or an object, per the jstree spec
+- getAttr(): returns an object of attributes to add to the LI object
+- getProps(): returns an object with attributes that are relevant to jstree, e.g. metadata, state, etc.
+- getChildren(): returns an array of children for this node, each of which must be an object that conforms to the interface
+- getChildrenCount(): returns the number of children for this object
+
+Additionally, every node may have one more function available on it:
+- getType(): returns a string representing some arbitrary type for this node. If available and returns non-null or blank string, will be given an attribute on the <li> element of type_attr or, if no type_attr, "rel"
+
+
