@@ -25,7 +25,7 @@ $("div#id").jstree({
 		progressive_unload: true/false,
 		id_prefix: string,
 		type_attr: string
-	}
+	} 
 ..
 });
 
