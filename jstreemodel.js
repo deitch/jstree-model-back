@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.5
+ * jsTreeModel 0.6
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -9,14 +9,14 @@
  * Created for Tufin www.tufin.com
  * Contributed to public source through the good offices of Tufin
  *
- * $Date: 2010-08-10 $
+ * $Date: 2010-10-27 $
  * $Revision:  $
  */
 
 /*global window, jQuery*/
 
 /* 
- * jsTree model plugin 0.5
+ * jsTree model plugin 0.6
  * This plugin gets jstree to use a class model to retrieve data, creating great dynamism
  */
 (function ($) {
