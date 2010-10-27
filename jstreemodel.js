@@ -66,15 +66,6 @@
 				var s = this._get_settings().model_data, d, ret;
 				obj = this._get_node(obj); 
 				if(obj && obj !== -1 && s.progressive_render && obj.children("ul:first").children("li").length === 0 && obj.data("jstree-model").getChildrenCount()>0) {
-					/*
-					d = this._parse_model(obj.data("jstree-model").getChildren());
-					if(d) {
-						obj.append(d);
-					}
-					this.clean_node(obj);
-					*/
-					//this.load_node(obj,s_call,e_call);
-					//return true;
 					ret = false;
 				} else {
 					ret = true;
