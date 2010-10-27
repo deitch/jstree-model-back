@@ -63,23 +63,29 @@
 			},
 			// check if a particular node is loaded
 			_is_loaded : function (obj) { 
-				var s = this._get_settings().model_data, d;
+				var s = this._get_settings().model_data, d, ret;
 				obj = this._get_node(obj); 
-				if(obj && obj !== -1 && s.progressive_render && !obj.is(".jstree-open, .jstree-leaf") && obj.children("ul").children("li").length === 0 && obj.data("jstree-model").getChildrenCount()>0) {
+				if(obj && obj !== -1 && s.progressive_render && obj.children("ul:first").children("li").length === 0 && obj.data("jstree-model").getChildrenCount()>0) {
+					/*
 					d = this._parse_model(obj.data("jstree-model").getChildren());
 					if(d) {
 						obj.append(d);
 					}
 					this.clean_node(obj);
-					return true;
+					*/
+					//this.load_node(obj,s_call,e_call);
+					//return true;
+					ret = false;
+				} else {
+					ret = true;
 				}
-				return obj === -1 || !obj || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").size() > 0;
+				return(ret);
 			},
 			// load a specific node from the model, given the object, success callback, and failure callback
 			load_node_model : function (obj, s_call, e_call) {
 				var s = this.get_settings().model_data, d, c,
 					error_func = function () {},
-					success_func = function () {};
+					success_func = function () {}, uNode;
 				// get the jQuery LI node from the object, or -1 if the container
 				obj = this._get_node(obj);
 				// if this is a real element and not the root
@@ -95,11 +101,16 @@
 				} else {
 					// behave differently if we are at the root or not
 					// root, get its children; not root, get itself
-					c = !obj || obj == -1 ? s.data.getChildren() : obj.data("jstree-model");
+					c = !obj || obj === -1 ? s.data.getChildren() : obj.data("jstree-model").getChildren();
+					uNode = !obj || obj === -1 ? this.get_container().children("ul").empty() : obj;
 					// root - go to the first one in the data, get its children, parse those
 					d = this._parse_model(c);
 					if(d) {
-						this.get_container().children("ul").empty().append(d.children());
+						uNode.append(d);
+						// no longer loading
+						if(obj && obj !== -1) {
+							obj.data("jstree-is-loading",false);
+						}
 						this.clean_node();
 					}
 					else { 
