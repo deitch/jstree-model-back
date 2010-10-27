@@ -65,7 +65,7 @@
 			_is_loaded : function (obj) { 
 				var s = this._get_settings().model_data, d, ret;
 				obj = this._get_node(obj); 
-				if(obj && obj !== -1 && s.progressive_render && obj.children("ul:first").children("li").length === 0 && obj.data("jstree-model").getChildrenCount()>0) {
+				if(obj && obj !== -1 && obj.children("ul:first").children("li").length === 0 && obj.data("jstree-model").getChildrenCount()>0) {
 					ret = false;
 				} else {
 					ret = true;
