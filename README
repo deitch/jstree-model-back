@@ -42,7 +42,7 @@ Every node must have the following functions available on it:
 - getName(): returns either a string to use as the name for the node, or an object, per the jstree spec
 - getAttr(): returns an object of attributes to add to the LI object
 - getProps(): returns an object with attributes that are relevant to jstree, e.g. metadata, state, etc.
-- getChildren(): returns an array of children for this node, each of which must be an object that conforms to the interface
+- getChildren(cb): expects a callback to which will be passed an array of children for this node, each of which must be an object that conforms to the interface
 - getChildrenCount(): returns the number of children for this object
 
 Additionally, every node may have one more function available on it:

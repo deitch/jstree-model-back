@@ -10,8 +10,10 @@
 					attr = attr || {};
 					var children = [];
 					return {
-						getChildren : function() {
-							return children;
+						getChildren : function(cb) {
+							if (cb && typeof(cb) === "function") {
+								cb(children);
+							}
 						},
 						getChildrenCount : function() {
 							return children.length;

@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.6
+ * jsTreeModel 0.7
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -9,14 +9,13 @@
  * Created for Tufin www.tufin.com
  * Contributed to public source through the good offices of Tufin
  *
- * $Date: 2010-10-27 $
+ * $Date: 2010-11-17 $
  * $Revision:  $
  */
 
 /*global window, jQuery*/
 
 /* 
- * jsTree model plugin 0.6
  * This plugin gets jstree to use a class model to retrieve data, creating great dynamism
  */
 (function ($) {
@@ -76,7 +75,7 @@
 			load_node_model : function (obj, s_call, e_call) {
 				var s = this.get_settings().model_data, d, c,
 					error_func = function () {},
-					success_func = function () {}, uNode;
+					success_func = function () {}, uNode, node, that = this;
 				// get the jQuery LI node from the object, or -1 if the container
 				obj = this._get_node(obj);
 				// if this is a real element and not the root
@@ -92,24 +91,28 @@
 				} else {
 					// behave differently if we are at the root or not
 					// root, get its children; not root, get itself
-					c = !obj || obj === -1 ? s.data.getChildren() : obj.data("jstree-model").getChildren();
+					node = !obj || obj === -1 ? s.data : obj.data("jstree-model");
 					uNode = !obj || obj === -1 ? this.get_container().children("ul").empty() : obj;
-					// root - go to the first one in the data, get its children, parse those
-					d = this._parse_model(c);
-					if(d) {
-						uNode.append(d);
-						// no longer loading
-						if(obj && obj !== -1) {
-							obj.data("jstree-is-loading",false);
-						}
-						this.clean_node();
-					}
-					else { 
-						if(s.correct_state) { this.get_container().children("ul").empty(); }
-					}
 
-					// succeeded - do success callback
-					if(s_call) { s_call.call(this); }
+
+					// root - go to the first one in the data, get its children, parse those
+					node.getChildren(function(c){
+						d = that._parse_model(c);
+						if(d) {
+							uNode.append(d);
+							// no longer loading
+							if(obj && obj !== -1) {
+								obj.data("jstree-is-loading",false);
+							}
+							that.clean_node();
+						}
+						else { 
+							if(s.correct_state) { that.get_container().children("ul").empty(); }
+						}
+
+						// succeeded - do success callback
+						if(s_call) { s_call.call(that); }
+					});
 				}
 			},
 			_parse_model : function (m, is_callback) {
@@ -177,6 +180,20 @@
 						if(s.progressive_render && js.state !== "open") {
 							d.addClass("jstree-closed");
 						} else {
+							/* async style */
+							m.getChildren(function(c){
+								if ($.isArray(c) && c.length > 0) {
+									tmp = this._parse_model(c, true);
+									if(tmp.length) {
+										ul2 = $("<ul>");
+										ul2.append(tmp);
+										d.append(ul2);
+									}
+								}
+							});
+							/* end async style */
+							
+							/* sync style
 							c = m.getChildren();
 							if($.isArray(c) && c.length > 0) {
 								tmp = this._parse_model(c, true);
@@ -186,6 +203,7 @@
 									d.append(ul2);
 								}
 							}
+							end sync style */
 						}
 					}
 				}
