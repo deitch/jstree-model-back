@@ -107,7 +107,7 @@
 							that.clean_node();
 						}
 						else { 
-							if(s.correct_state) { that.get_container().children("ul").empty(); }
+							if(s.correct_state) { uNode.children("ul").empty(); }
 						}
 
 						// succeeded - do success callback
