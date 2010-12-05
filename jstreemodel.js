@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.7
+ * jsTreeModel 0.75
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -120,7 +120,7 @@
 					p = this._get_settings(),
 					s = p.model_data,
 					t = p.core.html_titles,
-					tmp, i, j, ul1, ul2, js, c, name, type, id, attr;
+					tmp, i, j, ul1, ul2, js, c, name, type, id, attr, that = this;
 
 				if(!m) { return d; }
 				// do we have a series of children?
@@ -183,7 +183,7 @@
 							/* async style */
 							m.getChildren(function(c){
 								if ($.isArray(c) && c.length > 0) {
-									tmp = this._parse_model(c, true);
+									tmp = that._parse_model(c, true);
 									if(tmp.length) {
 										ul2 = $("<ul>");
 										ul2.append(tmp);
