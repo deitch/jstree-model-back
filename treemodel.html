@@ -8,8 +8,14 @@
 			$(document).ready(function(){
 				var node = function(name,attr,type) {
 					attr = attr || {};
-					var children = [];
-					return {
+					var children = [], o = $({});
+					o.extend({
+						openNode: function() {
+							this.trigger("addChildren.jstree",children);
+						},
+						closeNode: function() {
+							
+						},
 						getChildren : function(cb) {
 							if (cb && typeof(cb) === "function") {
 								cb(children);
@@ -20,14 +26,18 @@
 						},
 						addChild : function(child) {
 							children.push(child);
+							this.trigger("addChildren.jstree",child);
 							return(this);
 						},
 						removeChild : function(i) {
+							var child;
 							if (i>=children.length) {
-								children.pop();
+								child = children.pop();
 							} else {
+								child = children[i];
 								delete children[i];
 							}
+							this.trigger("removeChildren.jstree",child);								
 							return(this);
 						},
 						getAttr : function() {
@@ -37,12 +47,13 @@
 							return(name);
 						},
 						getProps : function() {
-							return(null);
+							return(attr);
 						},
 						getType : function() {
 							return(type);
 						}
-					}
+					});
+					return(o);
 				};
 				var root = node("Root 1",{price: "$5.00", size: "4", id: 1},"rooter");
 				root.addChild(node("Child 1",{price: "$4.00", size: "3", id:2},"childer")).addChild(node("Child 2",{price: "$3.00", size: "2", id:3},"childish"));

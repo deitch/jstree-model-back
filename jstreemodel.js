@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.75
+ * jsTreeModel 0.9
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -9,7 +9,7 @@
  * Created for Tufin www.tufin.com
  * Contributed to public source through the good offices of Tufin
  *
- * $Date: 2010-11-17 $
+ * $Date: 2011-01-02 $
  * $Revision:  $
  */
 
@@ -19,7 +19,7 @@
  * This plugin gets jstree to use a class model to retrieve data, creating great dynamism
  */
 (function ($) {
-	var nodeInterface = ["getChildren","getChildrenCount","getAttr","getName","getProps"];
+	var nodeInterface = ["getChildrenCount","getAttr","getName","getProps","openNode","closeNode"];
 	// ensure that something matches an interface
 	var validateInterface = function(obj,inter) {
 		var valid = true, i;
@@ -32,6 +32,38 @@
 			}
 		}
 		return(valid);
+	};
+	var genAddChildrenHandler = function(parent,that,do_clean,success) {
+		var called = false;
+		return function(e,children,index) {
+			var tmp, ul;
+			// parse the children we got, add them to the existing node
+			children = [].concat(children);
+			if (children.length > 0) {
+				tmp = that._parse_model(children, true);
+				if (tmp) {
+					// is there already a ul?
+					ul = parent.children("ul");
+					if (!ul || ul.length < 1) {
+						ul = $("<ul></ul>").appendTo(parent);
+					}
+					// where do we add them?
+					if (isNaN(index)) {
+						ul.append(tmp);
+					} else {
+						ul.children("li:eq("+index+")").after(tmp);
+					}
+					if (do_clean) {that.clean_node(parent);}
+				}
+			}
+			// succeeded - do success callback - one-time only
+			if(success && !called) { called = true; success.call(that);}
+		};
+	};
+	var genRemoveChildrenHandler = function(parent,that) {
+		return function(e,children,index) {
+			
+		};
 	};
 	$.jstree.plugin("model_data", {
 		__init : function() {
@@ -95,24 +127,14 @@
 					uNode = !obj || obj === -1 ? this.get_container().empty() : obj;
 
 
-					// root - go to the first one in the data, get its children, parse those
-					node.getChildren(function(c){
-						d = that._parse_model(c);
-						if(d) {
-							uNode.append(d);
-							// no longer loading
-							if(obj && obj !== -1) {
-								obj.data("jstree-is-loading",false);
-							}
-							that.clean_node();
-						}
-						else { 
-							if(s.correct_state) { uNode.children("ul").empty(); }
-						}
-
-						// succeeded - do success callback
-						if(s_call) { s_call.call(that); }
-					});
+					// listen for the changes about which we care
+					if (node.bind && typeof(node.bind) === "function") {
+						node.bind("addChildren.jstree",genAddChildrenHandler(uNode,that,true,s_call));
+						node.bind("removeChildren.jstree",genRemoveChildrenHandler(uNode,that));
+						// nodeChange is not relevant for root
+					}
+					// now open the root node for the first time
+					node.openNode();
 				}
 			},
 			_parse_model : function (m, is_callback) {
@@ -138,6 +160,13 @@
 						return d;
 					}
 					d = $("<li>");
+					// listen for the changes about which we care
+					if (m.bind && typeof(m.bind) === "function") {
+						m.bind("addChildren.jstree",genAddChildrenHandler(d,that));
+						m.bind("removeChildren.jstree",genRemoveChildrenHandler(d,that));
+						m.bind("nodeChange.jstree",function(){
+						});
+					}
 					js = m.getProps() || {};
 					name = [].concat(m.getName());
 					type = m.getType && typeof(m.getType) === "function" ? m.getType() : null;
@@ -180,30 +209,7 @@
 						if(s.progressive_render && js.state !== "open") {
 							d.addClass("jstree-closed");
 						} else {
-							/* async style */
-							m.getChildren(function(c){
-								if ($.isArray(c) && c.length > 0) {
-									tmp = that._parse_model(c, true);
-									if(tmp.length) {
-										ul2 = $("<ul>");
-										ul2.append(tmp);
-										d.append(ul2);
-									}
-								}
-							});
-							/* end async style */
-							
-							/* sync style
-							c = m.getChildren();
-							if($.isArray(c) && c.length > 0) {
-								tmp = this._parse_model(c, true);
-								if(tmp.length) {
-									ul2 = $("<ul>");
-									ul2.append(tmp);
-									d.append(ul2);
-								}
-							}
-							end sync style */
+							m.openNode();
 						}
 					}
 				}
