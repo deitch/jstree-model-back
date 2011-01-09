@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.9
+ * jsTreeModel 0.92
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -25,7 +25,7 @@
 		var valid = true, i;
 		obj = obj || {};
 		inter = [].concat(inter);
-		
+
 		for (i=0;i<inter.length;i++) {
 			if (!obj.hasOwnProperty(inter[i]) || typeof(obj[inter[i]]) !== "function") {
 				valid = false;
@@ -53,6 +53,7 @@
 					} else {
 						ul.children("li:eq("+index+")").after(tmp);
 					}
+					parent.removeClass("jstree-closed").removeClass("jstree-leaf").addClass("jstree-open");
 					if (do_clean) {that.clean_node(parent);}
 				}
 			}
@@ -62,7 +63,7 @@
 	};
 	var genRemoveChildrenHandler = function(parent,that) {
 		return function(e,children,index) {
-			
+
 		};
 	};
 	$.jstree.plugin("model_data", {
@@ -162,7 +163,7 @@
 					d = $("<li>");
 					// listen for the changes about which we care
 					if (m.bind && typeof(m.bind) === "function") {
-						m.bind("addChildren.jstree",genAddChildrenHandler(d,that));
+						m.bind("addChildren.jstree",genAddChildrenHandler(d,that,true));
 						m.bind("removeChildren.jstree",genRemoveChildrenHandler(d,that));
 						m.bind("nodeChange.jstree",function(){
 						});
@@ -200,18 +201,21 @@
 					if (id) {
 						d.attr("id",(s.id_prefix || "")+id);
 					}
-					
+
 					d.prepend("<ins class='jstree-icon'>&#160;</ins>");
 					// save the instance for this data on the <li> node itself
 					d.data("jstree-model",m);
 					// if we have children, either get them if !progressive_render, or indicate that we are closed if progressive_render
 					if(m.getChildrenCount()>0) { 
 						if(s.progressive_render && js.state !== "open") {
-							d.addClass("jstree-closed");
+							d.addClass("jstree-closed").removeClass("jstree-open");
 						} else {
 							m.openNode();
 						}
+					} else {
+						m.removeClass("jstree-open").removeClass("jstree-closed").addClass("jstree-leaf");
 					}
+
 				}
 				if(!is_callback) {
 					ul1 = $("<ul>");
