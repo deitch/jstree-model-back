@@ -45,7 +45,7 @@ Every node must have the following functions available on it:
 - getAttr(): returns an object of attributes to add to the LI object
 - getProps(): returns an object with attributes that are relevant to jstree, e.g. metadata, state, etc.
 - DEPRECATED: getChildren(cb): expects a callback to which will be passed an array of children for this node, each of which must be an object that conforms to the interface
-- openNode(): allows the tree to tell the model when the node has been opened.
+- openNode(cb): allows the tree to tell the model when the node has been opened. When openNode is complete, it should execute cb() to indicate completion.
 - closeNode(): allows the tree to tell the model when the node has been closed.
 - getChildrenCount(): returns the number of children for this object
 

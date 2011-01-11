@@ -10,8 +10,11 @@
 					attr = attr || {};
 					var children = [], o = $({});
 					o.extend({
-						openNode: function() {
-							this.trigger("addChildren.jstree",children);
+						openNode: function(cb) {
+							this.trigger("addChildren.jstree",[children]);
+							if (cb && typeof(cb) === "function") {
+								cb();
+							}
 						},
 						closeNode: function() {
 							
@@ -26,7 +29,6 @@
 						},
 						addChild : function(child) {
 							children.push(child);
-							this.trigger("addChildren.jstree",child);
 							return(this);
 						},
 						removeChild : function(i) {

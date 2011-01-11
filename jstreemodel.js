@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.92
+ * jsTreeModel 0.95
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -33,8 +33,7 @@
 		}
 		return(valid);
 	};
-	var genAddChildrenHandler = function(parent,that,do_clean,success) {
-		var called = false;
+	var genAddChildrenHandler = function(parent,that,do_clean) {
 		return function(e,children,index) {
 			var tmp, ul;
 			// parse the children we got, add them to the existing node
@@ -53,12 +52,12 @@
 					} else {
 						ul.children("li:eq("+index+")").after(tmp);
 					}
-					parent.removeClass("jstree-closed").removeClass("jstree-leaf").addClass("jstree-open");
+					//parent.removeClass("jstree-closed").removeClass("jstree-leaf").addClass("jstree-open");
 					if (do_clean) {that.clean_node(parent);}
 				}
 			}
 			// succeeded - do success callback - one-time only
-			if(success && !called) { called = true; success.call(that);}
+			//if(success && !called) { called = true; success.call(that);}
 		};
 	};
 	var genRemoveChildrenHandler = function(parent,that) {
@@ -129,13 +128,21 @@
 
 
 					// listen for the changes about which we care
-					if (node.bind && typeof(node.bind) === "function") {
-						node.bind("addChildren.jstree",genAddChildrenHandler(uNode,that,true,s_call));
+					if ((!obj || obj === -1) && node.bind && typeof(node.bind) === "function") {
+						node.bind("addChildren.jstree",genAddChildrenHandler(uNode,that,true));
 						node.bind("removeChildren.jstree",genRemoveChildrenHandler(uNode,that));
-						// nodeChange is not relevant for root
+						node.bind("nodeChange.jstree",function(){
+						});
 					}
-					// now open the root node for the first time
-					node.openNode();
+					// now open the node - which is what happens when jstree calls load_node
+					node.openNode(function(){
+						if (obj && obj.data) {
+							obj.data("jstree-is-loading",false);
+						}
+						if (s_call && typeof(s_call) === "function") {
+							s_call.call(that);
+						}
+					});
 				}
 			},
 			_parse_model : function (m, is_callback) {
@@ -210,10 +217,10 @@
 						if(s.progressive_render && js.state !== "open") {
 							d.addClass("jstree-closed").removeClass("jstree-open");
 						} else {
-							m.openNode();
+							m.openNode(function(){});
 						}
 					} else {
-						m.removeClass("jstree-open").removeClass("jstree-closed").addClass("jstree-leaf");
+						//m.removeClass("jstree-open").removeClass("jstree-closed").addClass("jstree-leaf");
 					}
 
 				}
