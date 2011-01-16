@@ -19,13 +19,8 @@
 						closeNode: function() {
 							
 						},
-						getChildren : function(cb) {
-							if (cb && typeof(cb) === "function") {
-								cb(children);
-							}
-						},
-						getChildrenCount : function() {
-							return children.length;
+						hasChildren : function() {
+							return(children.length > 0);
 						},
 						addChild : function(child) {
 							children.push(child);

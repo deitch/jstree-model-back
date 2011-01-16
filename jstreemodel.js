@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.95
+ * jsTreeModel 0.98
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -19,7 +19,7 @@
  * This plugin gets jstree to use a class model to retrieve data, creating great dynamism
  */
 (function ($) {
-	var nodeInterface = ["getChildrenCount","getAttr","getName","getProps","openNode","closeNode"];
+	var nodeInterface = ["hasChildren","getAttr","getName","getProps","openNode","closeNode"];
 	// ensure that something matches an interface
 	var validateInterface = function(obj,inter) {
 		var valid = true, i;
@@ -39,7 +39,7 @@
 			// parse the children we got, add them to the existing node
 			children = [].concat(children);
 			if (children.length > 0) {
-				tmp = that._parse_model(children, true);
+				tmp = that._parse_model(parent,children, true);
 				if (tmp) {
 					// is there already a ul?
 					ul = parent.children("ul");
@@ -56,8 +56,6 @@
 					if (do_clean) {that.clean_node(parent);}
 				}
 			}
-			// succeeded - do success callback - one-time only
-			//if(success && !called) { called = true; success.call(that);}
 		};
 	};
 	var genRemoveChildrenHandler = function(parent,that) {
@@ -95,15 +93,15 @@
 			// check if a particular node is loaded
 			_is_loaded : function (obj) { 
 				var s = this._get_settings().model_data, d, ret;
-				obj = this._get_node(obj); 
-				if(obj && obj !== -1 && obj.children("ul:first").children("li").length === 0 && obj.data("jstree-model").getChildrenCount()>0) {
-					ret = false;
-				} else {
+				obj = this._get_node(obj);
+				if (!obj || obj === -1 || obj.children("ul").children("li").length > 0) {
 					ret = true;
+				} else {
+					ret = false;
 				}
 				return(ret);
 			},
-			// load a specific node from the model, given the object, success callback, and failure callback
+			// load a specific node and its children from the model, given the object, success callback, and failure callback
 			load_node_model : function (obj, s_call, e_call) {
 				var s = this.get_settings().model_data, d, c,
 					error_func = function () {},
@@ -118,8 +116,10 @@
 					else { obj.data("jstree-is-loading",true); }
 				}
 				// make sure we have data set that fits the function
-				if (!s.data || typeof(s.data) !== "object" || !validateInterface(s.data,nodeInterface)) {
-					throw "Data settings object not supplied.";
+				if (!s.data || typeof(s.data) !== "object") {
+					throw "Data settings model not supplied.";
+				} else if (!validateInterface(s.data,nodeInterface)) {
+					throw "Data settings model does not have valid interface.";
 				} else {
 					// behave differently if we are at the root or not
 					// root, get its children; not root, get itself
@@ -145,12 +145,12 @@
 					});
 				}
 			},
-			_parse_model : function (m, is_callback) {
+			_parse_model : function (parent, m, is_callback) {
 				var d = false, 
 					p = this._get_settings(),
 					s = p.model_data,
 					t = p.core.html_titles,
-					tmp, i, j, ul1, ul2, js, c, name, type, id, attr, that = this;
+					tmp, i, j, ul1, ul2, js, c, name, type, id, attr, that = this, props;
 
 				if(!m) { return d; }
 				// do we have a series of children?
@@ -158,7 +158,7 @@
 					d = $();
 					if(!m.length) { return false; }
 					for(i = 0, j = m.length; i < j; i++) {
-						tmp = this._parse_model(m[i], true);
+						tmp = this._parse_model(parent, m[i], true);
 						if(tmp.length) { d = d.add(tmp); }
 					}
 				}
@@ -167,39 +167,16 @@
 					if (!validateInterface(m,nodeInterface)) {
 						return d;
 					}
-					d = $("<li>");
-					// listen for the changes about which we care
-					if (m.bind && typeof(m.bind) === "function") {
-						m.bind("addChildren.jstree",genAddChildrenHandler(d,that,true));
-						m.bind("removeChildren.jstree",genRemoveChildrenHandler(d,that));
-						m.bind("nodeChange.jstree",function(){
-						});
-					}
-					js = m.getProps() || {};
+					attr = m.getAttr();
+					props = m.getProps() || {};
+					js = {attr: attr, data: m.getName(), state: props.state};
 					name = [].concat(m.getName());
 					type = m.getType && typeof(m.getType) === "function" ? m.getType() : null;
-					attr = m.getAttr();
 					id = attr.id;
-					if(attr) { d.attr(attr); }
-					if(js.metadata) { d.data("jstree", js.metadata); }
-					if(js.state) { d.addClass("jstree-" + js.state); }
-					$.each(name, function (i, m) {
-						tmp = $("<a>");
-						if(typeof m == "string") { tmp.attr('href','#')[ t ? "html" : "text" ](m); }
-						else {
-							if(!m.attr) { m.attr = {}; }
-							if(!m.attr.href) { m.attr.href = '#'; }
-							tmp.attr(m.attr)[ t ? "html" : "text" ](m.title);
-							if(m.language) { tmp.addClass(m.language); }
-						}
-						tmp.prepend("<ins class='jstree-icon'>&#160;</ins>");
-						if(!m.icon && js.icon) { m.icon = js.icon; }
-						if(m.icon) { 
-							if(m.icon.indexOf("/") === -1) { tmp.children("ins").addClass(m.icon); }
-							else { tmp.children("ins").css("background","url('" + m.icon + "') center center no-repeat"); }
-						}
-						d.append(tmp);
-					});
+
+
+					d = this.create_node(parent, "inside", js,null,true);
+
 					// type support
 					if (type) {
 						d.attr(s.type_attr || "rel",type);
@@ -209,18 +186,24 @@
 						d.attr("id",(s.id_prefix || "")+id);
 					}
 
-					d.prepend("<ins class='jstree-icon'>&#160;</ins>");
-					// save the instance for this data on the <li> node itself
+					// save the instance for this data on the node itself
 					d.data("jstree-model",m);
+
+					// listen for the changes about which we care
+					if (m.bind && typeof(m.bind) === "function") {
+						m.bind("addChildren.jstree",genAddChildrenHandler(d,that,true));
+						m.bind("removeChildren.jstree",genRemoveChildrenHandler(d,that));
+						m.bind("nodeChange.jstree",function(){
+						});
+					}
+
 					// if we have children, either get them if !progressive_render, or indicate that we are closed if progressive_render
-					if(m.getChildrenCount()>0) { 
+					if(m.hasChildren()) { 
 						if(s.progressive_render && js.state !== "open") {
-							d.addClass("jstree-closed").removeClass("jstree-open");
+							d.addClass("jstree-closed").removeClass("jstree-open jstree-leaf");
 						} else {
 							m.openNode(function(){});
 						}
-					} else {
-						//m.removeClass("jstree-open").removeClass("jstree-closed").addClass("jstree-leaf");
 					}
 
 				}

@@ -45,9 +45,9 @@ Every node must have the following functions available on it:
 - getAttr(): returns an object of attributes to add to the LI object
 - getProps(): returns an object with attributes that are relevant to jstree, e.g. metadata, state, etc.
 - DEPRECATED: getChildren(cb): expects a callback to which will be passed an array of children for this node, each of which must be an object that conforms to the interface
-- openNode(cb): allows the tree to tell the model when the node has been opened. When openNode is complete, it should execute cb() to indicate completion.
+- openNode(cb): allows the tree to tell the model when the node has been opened. When openNode is complete, it should execute cb() to indicate completion, which is usually used to change class to show loading complete.
 - closeNode(): allows the tree to tell the model when the node has been closed.
-- getChildrenCount(): returns the number of children for this object
+- hasChildren(): returns true/false if the node has children.
 
 Every node should also be an implementation of jQuery, primarily to inherit event binding and triggering. Generally, you do that as follows:
 var obj = $({});
