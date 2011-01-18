@@ -44,12 +44,11 @@ Every node must have the following functions available on it:
 - getName(): returns either a string to use as the name for the node, or an object, per the jstree spec
 - getAttr(): returns an object of attributes to add to the LI object
 - getProps(): returns an object with attributes that are relevant to jstree, e.g. metadata, state, etc.
-- DEPRECATED: getChildren(cb): expects a callback to which will be passed an array of children for this node, each of which must be an object that conforms to the interface
 - openNode(cb): allows the tree to tell the model when the node has been opened. When openNode is complete, it should execute cb() to indicate completion, which is usually used to change class to show loading complete.
 - closeNode(): allows the tree to tell the model when the node has been closed.
 - hasChildren(): returns true/false if the node has children.
 
-Every node should also be an implementation of jQuery, primarily to inherit event binding and triggering. Generally, you do that as follows:
+The root node should also be an implementation of jQuery, primarily to inherit event binding and triggering. Generally, you do that as follows:
 var obj = $({});
 $.extend(obj,{
 	getName: function() {},
@@ -57,20 +56,23 @@ $.extend(obj,{
 });
 
 Event Structure:
-In order to notify jsTree about changes in the node itself and/or its children, jsTreeModel will bind to the node object for three events:
+In order to notify jsTree about changes in the node itself and/or its children, jsTreeModel will bind to the root object for three events:
 - addChildren.jstree: The node model should trigger this event when it has added children. The event signature is:
-	function(event,children,index)
+	function(event,node,children,index)
 		event is the event itself
+		node is the one adding children
 		children is one or an array of children object models that have been added.
 		index is where in the list of children they should be added. If index is greater than the current number of children, or NaN, 
 			then the children will be added at the end.
 - removeChildren.jstree: The node model should trigger this event when it has removed children. The event signature is:
-	function(event,children,index)
+	function(event,node,children,index)
 - nodeChange.jstree: The node model should trigger this event when the node itself has changed, specifically, one of its name or attributes. Signature:
-	function(event)
+	function(event,node)
 		jsTreeModel will do model.getName() and model.getAttrs() to retrieve the latest information.
 
-Additionally, every node may have one more function available on it:
+We considered making every node a jquery - in practice that is what we usually do, quite inexpensive since javascript is prototypal - but the issue was creating an event handler on each node. There is negligible impact on a small tree of 50 nodes, or even a medium one of 500 nodes, but there is significant impact for a large tree of thousands of nodes.
+
+Additionally, every node may have one more functions available on it:
 - getType(): returns a string representing some arbitrary type for this node. If available and returns non-null or blank string, will be given an attribute on the <li> element of type_attr or, if no type_attr, "rel"
 
 

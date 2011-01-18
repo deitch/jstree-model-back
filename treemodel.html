@@ -6,12 +6,13 @@
 		<script type="text/javascript" src="jstreemodel.js"></script>
 		<script type="text/javascript">
 			$(document).ready(function(){
+				var root;
 				var node = function(name,attr,type) {
 					attr = attr || {};
 					var children = [], o = $({});
 					o.extend({
 						openNode: function(cb) {
-							this.trigger("addChildren.jstree",[children]);
+							root.trigger("addChildren.jstree",[this,children]);
 							if (cb && typeof(cb) === "function") {
 								cb();
 							}
@@ -34,7 +35,7 @@
 								child = children[i];
 								delete children[i];
 							}
-							this.trigger("removeChildren.jstree",child);								
+							root.trigger("removeChildren.jstree",[this,child]);								
 							return(this);
 						},
 						getAttr : function() {
@@ -52,12 +53,13 @@
 					});
 					return(o);
 				};
-				var root = node("Root 1",{price: "$5.00", size: "4", id: 1},"rooter");
+				root = node("Root 1",{price: "$5.00", size: "4", id: 1},"rooter");
 				root.addChild(node("Child 1",{price: "$4.00", size: "3", id:2},"childer")).addChild(node("Child 2",{price: "$3.00", size: "2", id:3},"childish"));
+				root = node().addChild(root);
 				$("div#jstree1").jstree({
 					plugins: ["themes","model_data"],
 					model_data: {
-						data: node().addChild(root), 
+						data: root, 
 						progressive_render: true, 
 						progressive_unload: true,
 						type_attr: "mytype",

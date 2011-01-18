@@ -33,31 +33,6 @@
 		}
 		return(valid);
 	};
-	var genAddChildrenHandler = function(parent,that,do_clean) {
-		return function(e,children,index) {
-			var tmp, ul;
-			// parse the children we got, add them to the existing node
-			children = [].concat(children);
-			if (children.length > 0) {
-				tmp = that._parse_model(parent,children, true);
-				if (tmp) {
-					// is there already a ul?
-					ul = parent.children("ul");
-					if (!ul || ul.length < 1) {
-						ul = $("<ul></ul>").appendTo(parent);
-					}
-					// where do we add them?
-					if (isNaN(index)) {
-						ul.append(tmp);
-					} else {
-						ul.children("li:eq("+index+")").after(tmp);
-					}
-					//parent.removeClass("jstree-closed").removeClass("jstree-leaf").addClass("jstree-open");
-					if (do_clean) {that.clean_node(parent);}
-				}
-			}
-		};
-	};
 	var genRemoveChildrenHandler = function(parent,that) {
 		return function(e,children,index) {
 
@@ -67,11 +42,11 @@
 		__init : function() {
 			var s = this._get_settings().model_data;
 			var anim = this._get_settings().core.animation;
+			var container = this.get_container();
+			//s.data._elm = container;
 			// when a node is closed, if progressive_clean is in place, we clean up the node
-			// NOTE: THIS IS A BUG - close_node.jstree event is sent *before* the hide action is complete
-			//     jstree does not have a post-close event, but a request is in place
 			if (s.progressive_unload) {
-				this.get_container().bind("close_node.jstree", $.proxy(function (e, data) {
+				container.bind("after_close.jstree", $.proxy(function (e, data) {
 					// remove the children
 					data.rslt.obj.children("ul").detach();
 				}, this));
@@ -128,12 +103,45 @@
 
 
 					// listen for the changes about which we care
-					if ((!obj || obj === -1) && node.bind && typeof(node.bind) === "function") {
-						node.bind("addChildren.jstree",genAddChildrenHandler(uNode,that,true));
-						node.bind("removeChildren.jstree",genRemoveChildrenHandler(uNode,that));
-						node.bind("nodeChange.jstree",function(){
-						});
+					node._elm = uNode;
+					// bindings
+					if (uNode === this.get_container()) {
+						node.bind("addChildren.jstree",function(that) {
+							return function(e,target,children,index) {
+								var tmp, ul;
+								var parent = target._elm;
+								// parse the children we got, add them to the existing node
+								children = [].concat(children);
+								if (children.length > 0) {
+									tmp = that._parse_model(parent,children, true);
+									if (tmp) {
+										// is there already a ul?
+										ul = parent.children("ul");
+										if (!ul || ul.length < 1) {
+											ul = $("<ul></ul>").appendTo(parent);
+										}
+										// where do we add them?
+										if (isNaN(index)) {
+											ul.append(tmp);
+										} else {
+											ul.children("li:eq("+index+")").after(tmp);
+										}
+									}
+								}
+							};
+						}(that));
+						node.bind("removeChildren.jstree",function(that){
+							return function(e,target,children,index) {
+
+							};
+						}(that));
+						node.bind("nodeChange.jstree",function(that){
+							return function(e,target) {
+
+							};
+						}(that));
 					}
+
 					// now open the node - which is what happens when jstree calls load_node
 					node.openNode(function(){
 						if (obj && obj.data) {
@@ -150,7 +158,8 @@
 					p = this._get_settings(),
 					s = p.model_data,
 					t = p.core.html_titles,
-					tmp, i, j, ul1, ul2, js, c, name, type, id, attr, that = this, props;
+					tmp, i, j, ul1, ul2, js, c, name, type, id, attr, that = this, props,
+					cleanNode, rollback;
 
 				if(!m) { return d; }
 				// do we have a series of children?
@@ -175,7 +184,19 @@
 					id = attr.id;
 
 
-					d = this.create_node(parent, "inside", js,null,true);
+					// stub rollback and clean_node
+					rollback = this.get_rollback;
+					this.get_rollback = function(){};
+					cleanNode = this.clean_node;
+					this.clean_node = function(){};
+
+					// create the node
+					d = this.create_node(parent, "last", js,null,true);
+
+					// return the rollback and clean_node
+					this.__rollback = rollback;
+					this.clean_node = cleanNode;
+
 
 					// type support
 					if (type) {
@@ -190,12 +211,7 @@
 					d.data("jstree-model",m);
 
 					// listen for the changes about which we care
-					if (m.bind && typeof(m.bind) === "function") {
-						m.bind("addChildren.jstree",genAddChildrenHandler(d,that,true));
-						m.bind("removeChildren.jstree",genRemoveChildrenHandler(d,that));
-						m.bind("nodeChange.jstree",function(){
-						});
-					}
+					m._elm = d;
 
 					// if we have children, either get them if !progressive_render, or indicate that we are closed if progressive_render
 					if(m.hasChildren()) { 
@@ -204,7 +220,14 @@
 						} else {
 							m.openNode(function(){});
 						}
+					} else {
+						d.addClass("jstree-leaf").removeClass("jstree-open jstree-closed");
 					}
+					// now do our own cleanNode business
+					d.prev("li").removeClass("jstree-last");
+					if (d.next("li").length === 0) {
+						d.addClass("jstree-last");
+					};
 
 				}
 				if(!is_callback) {
