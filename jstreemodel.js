@@ -1,5 +1,5 @@
 /*
- * jsTreeModel 0.98
+ * jsTreeModel 0.99
  * http://jsorm.com/
  *
  * Dual licensed under the MIT and GPL licenses (same as jQuery):
@@ -45,7 +45,7 @@
 					// remove the children
 					data.rslt.obj.children("ul").detach();
 				}, this));
-			};
+			}
 		},
 		defaults : { 
 			data : false,
@@ -86,14 +86,14 @@
 					else { obj.data("jstree-is-loading",true); }
 				}
 				// make sure we have data set that fits the function
-				if (!s.data || typeof(s.data) !== "object") {
-					throw "Data settings model not supplied.";
-				} else if (!validateInterface(s.data,nodeInterface)) {
+				if (!s.data || typeof(s.data) !== "function") {
+					throw "Data settings model function not supplied.";
+				} else if (!validateInterface(s.data(),nodeInterface)) {
 					throw "Data settings model does not have valid interface.";
 				} else {
 					// behave differently if we are at the root or not
 					// root, get its children; not root, get itself
-					node = !obj || obj === -1 ? s.data : obj.data("jstree-model");
+					node = !obj || obj === -1 ? s.data() : obj.data("jstree-model");
 					uNode = !obj || obj === -1 ? this.get_container().empty() : obj;
 
 
@@ -131,7 +131,7 @@
 							}).bind("nodeChange.jstree",function(e,target) {
 
 							});
-						})(this);
+						}(this));
 					}
 
 					// now open the node - which is what happens when jstree calls load_node
@@ -219,7 +219,7 @@
 					d.prev("li").removeClass("jstree-last");
 					if (d.next("li").length === 0) {
 						d.addClass("jstree-last");
-					};
+					}
 
 				}
 				if(!is_callback) {
@@ -231,4 +231,4 @@
 			}
 		}
 	});
-})(jQuery);
+}(jQuery));

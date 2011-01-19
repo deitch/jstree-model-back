@@ -22,7 +22,7 @@ $("div#id").jstree({
 ..
 	plugins: ["core","ui",...,"tree_model"],
 	tree_model: {
-		data: rootObject,
+		data: function(){return(rootObject);},
 		progressive_render: true/false,
 		progressive_unload: true/false,
 		id_prefix: string,
@@ -54,6 +54,8 @@ $.extend(obj,{
 	getName: function() {},
 	// etc.
 });
+
+Note that the argument to "data" in "model_data" is not the root node itself, but a function to retrieve the root node. Because jstree uses jQuery's deep copy, this would copy the node, rather than give us the node itself, which would lead to errors. Thus, we need a function - which is left as is - to retrieve the root node.
 
 Event Structure:
 In order to notify jsTree about changes in the node itself and/or its children, jsTreeModel will bind to the root object for three events:

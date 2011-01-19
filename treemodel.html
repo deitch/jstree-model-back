@@ -59,7 +59,7 @@
 				$("div#jstree1").jstree({
 					plugins: ["themes","model_data"],
 					model_data: {
-						data: root, 
+						data: function(){return(root);}, 
 						progressive_render: true, 
 						progressive_unload: true,
 						type_attr: "mytype",
