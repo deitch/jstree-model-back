@@ -33,11 +33,6 @@
 		}
 		return(valid);
 	};
-	var genRemoveChildrenHandler = function(parent,that) {
-		return function(e,children,index) {
-
-		};
-	};
 	$.jstree.plugin("model_data", {
 		__init : function() {
 			var s = this._get_settings().model_data;
@@ -106,8 +101,11 @@
 					node._elm = uNode;
 					// bindings
 					if (uNode === this.get_container()) {
-						node.bind("addChildren.jstree",function(that) {
-							return function(e,target,children,index) {
+						uNode.bind("after_close.jstree",function(e,data){
+							data.rslt.obj.data("jstree-model").closeNode();							
+						});
+						(function(that) {
+							node.bind("addChildren.jstree",function(e,target,children,index) {
 								var tmp, ul;
 								var parent = target._elm;
 								// parse the children we got, add them to the existing node
@@ -128,18 +126,12 @@
 										}
 									}
 								}
-							};
-						}(that));
-						node.bind("removeChildren.jstree",function(that){
-							return function(e,target,children,index) {
+							}).bind("removeChildren.jstree",function(e,target,children,index) {
 
-							};
-						}(that));
-						node.bind("nodeChange.jstree",function(that){
-							return function(e,target) {
+							}).bind("nodeChange.jstree",function(e,target) {
 
-							};
-						}(that));
+							});
+						})(this);
 					}
 
 					// now open the node - which is what happens when jstree calls load_node
