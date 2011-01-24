@@ -9,7 +9,7 @@
  * Created for Tufin www.tufin.com
  * Contributed to public source through the good offices of Tufin
  *
- * $Date: 2011-01-02 $
+ * $Date: 2011-01-24 $
  * $Revision:  $
  */
 
@@ -42,8 +42,11 @@
 			// when a node is closed, if progressive_clean is in place, we clean up the node
 			if (s.progressive_unload) {
 				container.bind("after_close.jstree", $.proxy(function (e, data) {
-					// remove the children
-					data.rslt.obj.children("ul").detach();
+					// remove the children, if we have not just reloaded it
+					var obj = data.rslt.obj;
+					if (!obj.data("jstree-model-loaded")) {
+						data.rslt.obj.children("ul").detach();
+					}
 				}, this));
 			}
 		},
@@ -64,7 +67,8 @@
 			_is_loaded : function (obj) { 
 				var s = this._get_settings().model_data, d, ret;
 				obj = this._get_node(obj);
-				if (!obj || obj === -1 || obj.children("ul").children("li").length > 0) {
+				//if (!obj || obj === -1 || obj.children("ul").children("li").length > 0) {
+				if (!obj || obj === -1 || obj.data("jstree-model-loaded")) {
 					ret = true;
 				} else {
 					ret = false;
@@ -101,8 +105,9 @@
 					node._elm = uNode;
 					// bindings
 					if (uNode === this.get_container()) {
-						uNode.bind("after_close.jstree",function(e,data){
-							data.rslt.obj.data("jstree-model").closeNode();							
+						uNode.bind("close_node.jstree",function(e,data){
+							data.rslt.obj.data("jstree-model").closeNode();
+							data.rslt.obj.data("jstree-model-loaded",false);
 						});
 						(function(that) {
 							node.bind("addChildren.jstree",function(e,target,children,index) {
@@ -111,7 +116,7 @@
 								// parse the children we got, add them to the existing node
 								children = [].concat(children);
 								if (children.length > 0) {
-									tmp = that._parse_model(parent,children, true);
+									tmp = that._parse_model(parent,children);
 									if (tmp) {
 										// is there already a ul?
 										ul = parent.children("ul");
@@ -135,17 +140,22 @@
 					}
 
 					// now open the node - which is what happens when jstree calls load_node
+					// but first clean the node to be safe - this should happen after_close above, but
+					//   might get missed if it is open/close quickly
+					uNode.children("ul").detach();
 					node.openNode(function(){
 						if (obj && obj.data) {
 							obj.data("jstree-is-loading",false);
+							obj.data("jstree-model-loaded",true);
 						}
+						
 						if (s_call && typeof(s_call) === "function") {
 							s_call.call(that);
 						}
-					});
+					},true);
 				}
 			},
-			_parse_model : function (parent, m, is_callback) {
+			_parse_model : function (parent, m) {
 				var d = false, 
 					p = this._get_settings(),
 					s = p.model_data,
@@ -159,7 +169,7 @@
 					d = $();
 					if(!m.length) { return false; }
 					for(i = 0, j = m.length; i < j; i++) {
-						tmp = this._parse_model(parent, m[i], true);
+						tmp = this._parse_model(parent, m[i]);
 						if(tmp.length) { d = d.add(tmp); }
 					}
 				}
@@ -210,7 +220,9 @@
 						if(s.progressive_render && js.state !== "open") {
 							d.addClass("jstree-closed").removeClass("jstree-open jstree-leaf");
 						} else {
-							m.openNode(function(){});
+							m.openNode(function(){
+								d.data("jstree-model-loaded",true);								
+							});
 						}
 					} else {
 						d.addClass("jstree-leaf").removeClass("jstree-open jstree-closed");
@@ -221,11 +233,6 @@
 						d.addClass("jstree-last");
 					}
 
-				}
-				if(!is_callback) {
-					ul1 = $("<ul>");
-					ul1.append(d);
-					d = ul1;
 				}
 				return d;
 			}

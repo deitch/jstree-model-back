@@ -44,7 +44,7 @@ Every node must have the following functions available on it:
 - getName(): returns either a string to use as the name for the node, or an object, per the jstree spec
 - getAttr(): returns an object of attributes to add to the LI object
 - getProps(): returns an object with attributes that are relevant to jstree, e.g. metadata, state, etc.
-- openNode(cb): allows the tree to tell the model when the node has been opened. When openNode is complete, it should execute cb() to indicate completion, which is usually used to change class to show loading complete.
+- openNode(cb,user): allows the tree to tell the model when the node has been opened. When openNode is complete, it should execute cb() to indicate completion, which is usually used to change class to show loading complete. The parameter "user" will tell the node if this openNode() was called because a user actually executed something (usually a click), or an API (true for both of those cases), or if it is because jsTreeModel opened a node that was loaded via addChildren.jstree, which itself was open (false).
 - closeNode(): allows the tree to tell the model when the node has been closed.
 - hasChildren(): returns true/false if the node has children.
 
