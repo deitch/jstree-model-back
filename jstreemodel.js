@@ -142,7 +142,9 @@
 					// now open the node - which is what happens when jstree calls load_node
 					// but first clean the node to be safe - this should happen after_close above, but
 					//   might get missed if it is open/close quickly
-					uNode.children("ul").detach();
+					if (s.progressive_unload) {
+						uNode.children("ul").detach();
+					}
 					node.openNode(function(){
 						if (obj && obj.data) {
 							obj.data("jstree-is-loading",false);
