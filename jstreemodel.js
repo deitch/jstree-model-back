@@ -104,7 +104,8 @@
 					// listen for the changes about which we care
 					node._elm = uNode;
 					// bindings
-					if (uNode === this.get_container()) {
+					if (uNode === this.get_container() && !uNode.data("jstree-model-init")) {
+						uNode.data("jstree-model-init",true);
 						uNode.bind("close_node.jstree",function(e,data){
 							data.rslt.obj.data("jstree-model").closeNode();
 							data.rslt.obj.data("jstree-model-loaded",false);
