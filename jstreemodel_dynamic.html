@@ -1,0 +1,103 @@
+<html>
+	<head>
+		<title>jstree treemodel plugin demo</title>
+		<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+		<script type="text/javascript" src="jquery.jstree.js"></script>
+		<script type="text/javascript" src="jstreemodel.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				var root, treeData;
+				var node = function(name,attr,type) {
+					attr = attr || {};
+					var children = attr.children || [], childNodes = [], o = $({}), origName = name;
+					o.extend({
+						openNode: function(cb) {
+							var i, n;
+							// first get the children from the "server"
+							for(i=0;i<children.length;i++) {
+								n = treeData[children[i]];
+								childNodes.push(node(n.name,n));
+							}
+							root.trigger("addChildren.jstree",[this,childNodes]);
+							
+							// show how we change the name
+							name = name + " OPEN";
+							root.trigger("nodeChange.jstree",[this]);
+							if (cb && typeof(cb) === "function") {
+								cb();
+							}
+						},
+						closeNode: function() {
+							name = origName;
+							root.trigger("nodeChange.jstree",[this]);
+						},
+						hasChildren : function() {
+							return(children.length > 0);
+						},
+						addChild : function(child) {
+							childNodes.push(child);
+							return(this);
+						},
+						removeChild : function(i) {
+							var child;
+							if (i>=children.length) {
+								child = children.pop();
+							} else {
+								child = children[i];
+								delete children[i];
+								delete childNodes[i];
+							}
+							root.trigger("removeChildren.jstree",[this,child]);								
+							return(this);
+						},
+						getAttr : function() {
+							return(attr);
+						},
+						getName : function() {
+							return(name);
+						},
+						getProps : function() {
+							return(attr);
+						},
+						getType : function() {
+							return(type);
+						}
+					});
+					return(o);
+				};
+				
+				// this is the tree data - this should be retrieved from a server, but this example works server-less
+				// so the key is the indicator as to what it would be queried from the server, the rest is the data
+				treeData = {
+					1: {name:"Root 1",price: "$5.00", size: "4", id:1, children:[2,3]},
+					2: {name: "Child 2",price: "$4.00", size: "3", id:2},
+					3: {name: "Child 3",price: "$3.00", size: "2", id:3, children:[4,5]},
+					4: {name: "Grandchild 4",price: "$3.00", size: "2", id:4},
+					5: {name: "Grandchild 5",price: "$3.00", size: "2", id:5}
+				};
+				
+				root = node().addChild(node(treeData[1].name,treeData[1],"rooter"));
+				$("div#jstree1").jstree({
+					plugins: ["themes","model_data"],
+					model_data: {
+						data: function(){return(root);}, 
+						progressive_render: true, 
+						progressive_unload: true,
+						type_attr: "mytype",
+						id_prefix: "myid"
+					}
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<h2>Tree Model Demo</h2>
+		This page gives a demo for using the excellent <a href="http://www.jstree.com">jstree</a>, built on the
+		amazing <a href="http://jquery.com">jQuery</a> library, with a tree model. The treemodel is implemented
+		as a standard jstree plugin. Simply include jquery and jstree, and the plugin library jstreemodel.js,
+		and include it as a plugin. Look at the source to this page to see how it is done.
+		<div id="jstree1"></div>
+		<div id="jstree2"></div>
+		
+	</body>
+</html>
