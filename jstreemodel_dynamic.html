@@ -29,6 +29,7 @@
 						},
 						closeNode: function() {
 							name = origName;
+							childNodes = [];
 							root.trigger("nodeChange.jstree",[this]);
 						},
 						hasChildren : function() {
