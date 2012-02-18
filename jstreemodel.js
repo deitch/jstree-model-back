@@ -224,7 +224,8 @@
 							d.addClass("jstree-closed").removeClass("jstree-open jstree-leaf");
 						} else {
 							m.openNode(function(){
-								d.data("jstree-model-loaded",true);								
+								d.data("jstree-model-loaded",true);
+								d.addClass("jstree-open").removeClass("jstree-closed");
 							});
 						}
 					} else {
